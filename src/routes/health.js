@@ -1,5 +1,26 @@
 export default async function (fastify, options) {
-  fastify.get('/health', async (request, reply) => {
+  fastify.get('/health', {
+    schema: {
+      tags: ['Health'],
+      summary: 'Get server health status',
+      description: 'Returns basic health information about the server',
+      response: {
+        200: {
+          description: 'Health check response',
+          type: 'object',
+          properties: {
+            status: { type: 'string' },
+            timestamp: { type: 'string', format: 'date-time' },
+            uptime: { type: 'number', description: 'Server uptime in seconds' },
+            environment: { type: 'string' },
+            version: { type: 'string' },
+            openai: { type: 'string', enum: ['connected', 'not_configured', 'error'] },
+            stripe: { type: 'string', enum: ['connected', 'not_configured', 'error'] }
+          }
+        }
+      }
+    }
+  }, async (request, reply) => {
     const health = {
       status: 'ok',
       timestamp: new Date().toISOString(),
@@ -33,7 +54,47 @@ export default async function (fastify, options) {
     reply.send(health);
   });
 
-  fastify.get('/health/ready', async (request, reply) => {
+  fastify.get('/health/ready', {
+    schema: {
+      tags: ['Health'],
+      summary: 'Get server readiness status',
+      description: 'Returns detailed readiness information for deployment checks',
+      response: {
+        200: {
+          description: 'Ready response',
+          type: 'object',
+          properties: {
+            ready: { type: 'boolean' },
+            checks: {
+              type: 'object',
+              properties: {
+                server: { type: 'boolean' },
+                openai: { type: 'boolean' },
+                stripe: { type: 'boolean' }
+              }
+            },
+            timestamp: { type: 'string', format: 'date-time' }
+          }
+        },
+        503: {
+          description: 'Not ready response',
+          type: 'object',
+          properties: {
+            ready: { type: 'boolean' },
+            checks: {
+              type: 'object',
+              properties: {
+                server: { type: 'boolean' },
+                openai: { type: 'boolean' },
+                stripe: { type: 'boolean' }
+              }
+            },
+            timestamp: { type: 'string', format: 'date-time' }
+          }
+        }
+      }
+    }
+  }, async (request, reply) => {
     // More detailed readiness check
     const checks = {
       server: true,

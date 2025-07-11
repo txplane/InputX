@@ -4,11 +4,19 @@ const maxRequestsPerKey = 60;
 const requestCounts = new Map();
 
 export function rateLimiter(request, reply, done) {
-  // Skip rate limiting for public routes
-  const publicRoutes = ['/health', '/health/ready', '/models'];
-  const currentPath = request.routerPath || request.url;
-  
-  if (publicRoutes.includes(currentPath)) {
+  // Robust public route check for documentation and static assets
+  const url = request.url;
+  if (
+    url === '/documentation' ||
+    url === '/documentation/' ||
+    url.startsWith('/documentation/') ||
+    url.startsWith('/documentation?') ||
+    url.startsWith('/documentation%2F') ||
+    url.startsWith('/documentation%3F') ||
+    url === '/health' ||
+    url === '/health/ready' ||
+    url === '/models'
+  ) {
     return done();
   }
 
